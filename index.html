@@ -15,6 +15,7 @@
       --acid: #d6f36a;
       --line: rgba(241, 240, 232, 0.14);
       --panel: rgba(20, 23, 19, 0.72);
+      --danger: #ff8b7b;
     }
 
     * { box-sizing: border-box; }
@@ -51,6 +52,35 @@
       mix-blend-mode: screen;
     }
 
+    body.maintenance-active::before {
+      background:
+        linear-gradient(115deg, transparent 0 44%, rgba(255, 139, 123, 0.08) 44.1% 44.3%, transparent 44.4%),
+        #0c0d0c;
+    }
+
+    .maintenance-door {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 5;
+      display: grid;
+      min-height: 5rem;
+      place-items: center;
+      padding: 1rem;
+      color: #0c0d0c;
+      background: var(--acid);
+      transform: translateY(-105%);
+      transition: transform 700ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .maintenance-door strong {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    body.maintenance-active .maintenance-door { transform: translateY(0); }
+
     main {
       display: grid;
       min-height: 100vh;
@@ -69,6 +99,18 @@
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
+
+    .admin-button {
+      border: 1px solid var(--line);
+      padding: 0.45rem 0.7rem;
+      color: var(--ink);
+      background: transparent;
+      cursor: pointer;
+      font: inherit;
+      letter-spacing: 0.18em;
+    }
+
+    .admin-button:hover { border-color: var(--acid); color: var(--acid); }
 
     .mark {
       display: inline-flex;
@@ -128,6 +170,24 @@
       gap: 1.5rem;
     }
 
+    .game-list {
+      display: flex;
+      max-height: 12rem;
+      flex-direction: column;
+      gap: 0.75rem;
+      overflow-y: scroll;
+      padding: 0.25rem 0.75rem 0.75rem 0.25rem;
+    }
+
+    .game-list h2 {
+      margin: 0;
+      color: var(--acid);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
     .action-copy {
       max-width: 14rem;
       margin: 0;
@@ -174,9 +234,60 @@
       outline-offset: 5px;
     }
 
+    .poolrooms-button {
+      color: #000;
+      background: #fff;
+    }
+
+    .poolrooms-button span {
+      color: #000;
+      background: #e7e7e7;
+    }
+
     footer { align-items: end; }
 
     .status { color: var(--acid); }
+
+    .live-strip {
+      display: none;
+      width: min(100%, 45rem);
+      margin-top: 1.5rem;
+      padding: 0.8rem 1rem;
+      border-left: 2px solid var(--acid);
+      color: var(--ink);
+      background: var(--panel);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+    }
+
+    .live-strip.visible { display: block; }
+
+    .admin-dialog {
+      width: min(34rem, calc(100% - 2rem));
+      border: 1px solid var(--acid);
+      border-radius: 0;
+      color: var(--ink);
+      background: #11140f;
+      padding: 1.5rem;
+    }
+
+    .admin-dialog::backdrop { background: rgba(0, 0, 0, 0.72); }
+    .admin-dialog h2 { margin: 0 0 1.25rem; font-size: 1.25rem; }
+    .admin-dialog label { display: grid; gap: 0.45rem; margin-top: 1rem; color: var(--muted); font-size: 0.8rem; }
+    .admin-dialog input, .admin-dialog textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 0;
+      padding: 0.7rem;
+      color: var(--ink);
+      background: #0c0d0c;
+      font: inherit;
+    }
+    .admin-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.25rem; }
+    .admin-actions button { border: 1px solid var(--acid); border-radius: 0; padding: 0.65rem 0.8rem; color: #0c0d0c; background: var(--acid); cursor: pointer; font: 600 0.8rem 'Space Grotesk', sans-serif; }
+    .admin-actions .secondary { color: var(--ink); background: transparent; }
+    .admin-message { min-height: 1.2rem; margin: 1rem 0 0; color: var(--danger); font-size: 0.8rem; }
 
     @media (max-width: 600px) {
       body { overflow: auto; }
@@ -191,7 +302,10 @@
   <main>
     <header>
       <div class="mark">redirecter</div>
-      <div>signal / 001</div>
+      <div>
+        <span>signal / 001</span>
+        <button class="admin-button" id="admin-open" type="button" aria-label="Open admin menu">•••</button>
+      </div>
     </header>
 
     <section class="hero" aria-labelledby="page-title">
@@ -199,12 +313,20 @@
         <p class="eyebrow">destination found</p>
         <h1 id="page-title">redirecter</h1>
         <div class="rule"></div>
+        <div class="live-strip" id="live-strip" aria-live="polite"></div>
         <div class="action-row">
           <p class="action-copy">One door. One destination. Step through when you are ready.</p>
-          <button class="launch-button" type="button" onclick="window.open('https://backrooms-game-oz0r.onrender.com/', '_blank', 'noopener,noreferrer')">
-            backrooms game
-            <span aria-hidden="true">↗</span>
-          </button>
+          <div class="game-list">
+            <h2>backrooms games</h2>
+            <button class="launch-button" type="button" onclick="window.open('https://backrooms-game-oz0r.onrender.com/', '_blank', 'noopener,noreferrer')">
+              level 0
+              <span aria-hidden="true">↗</span>
+            </button>
+            <button class="launch-button poolrooms-button" type="button">
+              poolrooms
+              <span aria-hidden="true">↗</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -214,5 +336,96 @@
       <div class="status">● ready to redirect</div>
     </footer>
   </main>
+  <div class="maintenance-door" aria-hidden="true"><strong>maintenance mode active</strong></div>
+
+  <dialog class="admin-dialog" id="admin-dialog">
+    <form id="passcode-form">
+      <h2>admin access</h2>
+      <label>Passcode <input id="passcode" type="password" inputmode="numeric" autocomplete="off" required></label>
+      <div class="admin-actions"><button type="submit">enter</button><button class="secondary" id="admin-cancel" type="button">cancel</button></div>
+      <p class="admin-message" id="admin-message" role="alert"></p>
+    </form>
+    <form id="controls-form" hidden>
+      <h2>site controls</h2>
+      <div class="admin-actions"><button id="maintenance-toggle" type="button">toggle maintenance</button></div>
+      <label>Event name <input id="countdown-name" type="text" maxlength="80"></label>
+      <label>Event ends <input id="countdown-date" type="datetime-local"></label>
+      <div class="admin-actions"><button id="countdown-save" type="button">save countdown</button><button id="countdown-clear" class="secondary" type="button">clear countdown</button></div>
+      <label>Announcement <textarea id="announcement-message" rows="3" maxlength="500"></textarea></label>
+      <div class="admin-actions"><button id="announcement-send" type="button">announce</button><button id="announcement-clear" class="secondary" type="button">clear announcement</button><button id="admin-close" class="secondary" type="button">close</button></div>
+      <p class="admin-message" id="controls-message" role="status"></p>
+    </form>
+  </dialog>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://xbxlwqbkamtcskdfspnf.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_RvD8zROSZ9nf35-YZKWBcQ_0gLXBvcC';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const state = { maintenance_enabled: false, countdown_name: null, countdown_ends_at: null, announcement: null };
+    const dialog = document.getElementById('admin-dialog');
+    const message = document.getElementById('admin-message');
+    const controlsMessage = document.getElementById('controls-message');
+
+    function renderState(nextState) {
+      Object.assign(state, nextState);
+      document.body.classList.toggle('maintenance-active', state.maintenance_enabled);
+      const strip = document.getElementById('live-strip');
+      const items = [];
+      if (state.countdown_ends_at && new Date(state.countdown_ends_at) > new Date()) {
+        items.push((state.countdown_name || 'event') + ' ends ' + new Date(state.countdown_ends_at).toLocaleString());
+      }
+      if (state.announcement) items.push(state.announcement);
+      strip.textContent = items.join('  •  ');
+      strip.classList.toggle('visible', items.length > 0);
+    }
+
+    async function loadState() {
+      const { data, error } = await supabase.from('site_state').select('*').eq('id', true).single();
+      if (!error && data) renderState(data);
+    }
+
+    async function adminAction(payload) {
+      const response = await fetch(SUPABASE_URL + '/functions/v1/admin-control', {
+        method: 'POST',
+        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, passcode: sessionStorage.getItem('admin-passcode') })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Request failed');
+      renderState(result.data);
+    }
+
+    document.getElementById('admin-open').addEventListener('click', () => { message.textContent = ''; dialog.showModal(); });
+    document.getElementById('admin-cancel').addEventListener('click', () => dialog.close());
+    document.getElementById('passcode-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      sessionStorage.setItem('admin-passcode', document.getElementById('passcode').value);
+      try {
+        await adminAction({ action: 'maintenance', enabled: state.maintenance_enabled });
+        document.getElementById('passcode-form').hidden = true;
+        document.getElementById('controls-form').hidden = false;
+        document.getElementById('maintenance-toggle').textContent = state.maintenance_enabled ? 'disable maintenance' : 'enable maintenance';
+      } catch (error) { sessionStorage.removeItem('admin-passcode'); message.textContent = error.message; }
+    });
+    document.getElementById('maintenance-toggle').addEventListener('click', async () => {
+      try { await adminAction({ action: 'maintenance', enabled: !state.maintenance_enabled }); document.getElementById('maintenance-toggle').textContent = state.maintenance_enabled ? 'disable maintenance' : 'enable maintenance'; } catch (error) { controlsMessage.textContent = error.message; }
+    });
+    document.getElementById('countdown-save').addEventListener('click', async () => {
+      try { await adminAction({ action: 'countdown', name: document.getElementById('countdown-name').value, endsAt: new Date(document.getElementById('countdown-date').value).toISOString() }); controlsMessage.textContent = 'Countdown saved.'; } catch (error) { controlsMessage.textContent = error.message; }
+    });
+    document.getElementById('countdown-clear').addEventListener('click', async () => {
+      try { await adminAction({ action: 'countdown', name: '', endsAt: null }); controlsMessage.textContent = 'Countdown cleared.'; } catch (error) { controlsMessage.textContent = error.message; }
+    });
+    document.getElementById('announcement-send').addEventListener('click', async () => {
+      try { await adminAction({ action: 'announcement', message: document.getElementById('announcement-message').value }); controlsMessage.textContent = 'Announcement published.'; } catch (error) { controlsMessage.textContent = error.message; }
+    });
+    document.getElementById('announcement-clear').addEventListener('click', async () => {
+      try { await adminAction({ action: 'announcement', message: '' }); controlsMessage.textContent = 'Announcement cleared.'; } catch (error) { controlsMessage.textContent = error.message; }
+    });
+    document.getElementById('admin-close').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => { document.getElementById('passcode-form').hidden = false; document.getElementById('controls-form').hidden = true; document.getElementById('passcode').value = ''; });
+    supabase.channel('site-state').on('postgres_changes', { event: '*', schema: 'public', table: 'site_state' }, (payload) => renderState(payload.new)).subscribe();
+    loadState();
+  </script>
 </body>
 </html>
