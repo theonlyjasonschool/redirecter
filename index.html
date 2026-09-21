@@ -304,7 +304,7 @@
       <div class="mark">redirecter</div>
       <div>
         <span>signal / 001</span>
-        <button class="admin-button" id="admin-open" type="button" aria-label="Open admin menu">•••</button>
+        <button class="admin-button" id="admin-open" type="button" aria-label="Open admin menu" onclick="document.getElementById('admin-dialog').setAttribute('open', '')">•••</button>
       </div>
     </header>
 
@@ -366,6 +366,15 @@
     const message = document.getElementById('admin-message');
     const controlsMessage = document.getElementById('controls-message');
 
+    function openAdminDialog() {
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+      message.textContent = '';
+    }
+
     function renderState(nextState) {
       Object.assign(state, nextState);
       document.body.classList.toggle('maintenance-active', state.maintenance_enabled);
@@ -397,7 +406,7 @@
       renderState(result.data);
     }
 
-    document.getElementById('admin-open').addEventListener('click', () => { message.textContent = ''; dialog.showModal(); });
+    document.getElementById('admin-open').addEventListener('click', (event) => event.stopPropagation());
     document.getElementById('admin-cancel').addEventListener('click', () => dialog.close());
     document.getElementById('passcode-form').addEventListener('submit', async (event) => {
       event.preventDefault();
