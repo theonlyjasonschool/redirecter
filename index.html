@@ -360,7 +360,7 @@
   <script>
     const SUPABASE_URL = 'https://xbxlwqbkamtcskdfspnf.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_RvD8zROSZ9nf35-YZKWBcQ_0gLXBvcC';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
     const state = { maintenance_enabled: false, countdown_name: null, countdown_ends_at: null, announcement: null };
     const dialog = document.getElementById('admin-dialog');
     const message = document.getElementById('admin-message');
@@ -380,11 +380,13 @@
     }
 
     async function loadState() {
+      if (!supabase) return;
       const { data, error } = await supabase.from('site_state').select('*').eq('id', true).single();
       if (!error && data) renderState(data);
     }
 
     async function adminAction(payload) {
+      if (!supabase) throw new Error('The live control service is unavailable. Please reload the page.');
       const response = await fetch(SUPABASE_URL + '/functions/v1/admin-control', {
         method: 'POST',
         headers: { apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json' },
@@ -424,7 +426,9 @@
     });
     document.getElementById('admin-close').addEventListener('click', () => dialog.close());
     dialog.addEventListener('close', () => { document.getElementById('passcode-form').hidden = false; document.getElementById('controls-form').hidden = true; document.getElementById('passcode').value = ''; });
-    supabase.channel('site-state').on('postgres_changes', { event: '*', schema: 'public', table: 'site_state' }, (payload) => renderState(payload.new)).subscribe();
+    if (supabase) {
+      supabase.channel('site-state').on('postgres_changes', { event: '*', schema: 'public', table: 'site_state' }, (payload) => renderState(payload.new)).subscribe();
+    }
     loadState();
   </script>
 </body>
