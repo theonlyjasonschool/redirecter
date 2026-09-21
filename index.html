@@ -313,7 +313,7 @@
       <div class="mark">redirecter</div>
       <div>
         <span>signal / 001</span>
-        <button class="admin-button" id="admin-open" type="button" aria-label="Open admin menu" onclick="event.preventDefault(); document.getElementById('admin-dialog').setAttribute('open', '')">•••</button>
+        <button class="admin-button" id="admin-open" type="button" aria-label="Open admin menu">•••</button>
       </div>
     </header>
 
@@ -415,7 +415,11 @@
       renderState(result.data);
     }
 
-    document.getElementById('admin-open').addEventListener('click', (event) => event.stopPropagation());
+    document.getElementById('admin-open').addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openAdminDialog();
+    });
     document.getElementById('admin-cancel').addEventListener('click', () => dialog.close());
     document.getElementById('passcode-form').addEventListener('submit', async (event) => {
       event.preventDefault();
