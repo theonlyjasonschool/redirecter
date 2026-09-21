@@ -265,12 +265,21 @@
 
     .admin-dialog {
       width: min(34rem, calc(100% - 2rem));
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 10;
+      display: none;
+      margin: 0;
       border: 1px solid var(--acid);
       border-radius: 0;
       color: var(--ink);
       background: #11140f;
       padding: 1.5rem;
+      transform: translate(-50%, -50%);
     }
+
+    .admin-dialog[open] { display: block; }
 
     .admin-dialog::backdrop { background: rgba(0, 0, 0, 0.72); }
     .admin-dialog h2 { margin: 0 0 1.25rem; font-size: 1.25rem; }
@@ -304,7 +313,7 @@
       <div class="mark">redirecter</div>
       <div>
         <span>signal / 001</span>
-        <button class="admin-button" id="admin-open" type="button" aria-label="Open admin menu" onclick="document.getElementById('admin-dialog').setAttribute('open', '')">•••</button>
+        <button class="admin-button" id="admin-open" type="button" aria-label="Open admin menu" onclick="event.preventDefault(); document.getElementById('admin-dialog').setAttribute('open', '')">•••</button>
       </div>
     </header>
 
