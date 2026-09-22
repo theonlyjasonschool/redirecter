@@ -1,5 +1,3 @@
-import { createClient } from 'jsr:@supabase/supabase-js@2';
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -20,11 +18,6 @@ Deno.serve(async (request) => {
     return json({ error: 'Invalid passcode' }, 401);
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  );
-
   const updates: Record<string, boolean | string | null> = {};
   if (body.action === 'maintenance') {
     updates.maintenance_enabled = Boolean(body.enabled);
@@ -37,15 +30,19 @@ Deno.serve(async (request) => {
     return json({ error: 'Unknown action' }, 400);
   }
 
-  const { data, error } = await supabase
-    .from('site_state')
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', true)
-    .select()
-    .single();
-
-  if (error) return json({ error: error.message }, 500);
-  return json({ data });
+  const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/rest/v1/site_state?id=eq.true`, {
+    method: 'PATCH',
+    headers: {
+      apikey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify({ ...updates, updated_at: new Date().toISOString() }),
+  });
+  const result = await response.json().catch(() => null);
+  if (!response.ok) return json({ error: result?.message || 'Database update failed' }, 500);
+  return json({ data: result?.[0] });
 });
 
 function json(body: unknown, status = 200) {
