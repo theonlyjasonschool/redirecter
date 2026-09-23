@@ -608,6 +608,10 @@
     @media (max-width: 600px) {
       body { overflow: auto; }
       main { min-height: 100svh; }
+      header { align-items: flex-start; flex-wrap: wrap; }
+      .header-brand { min-width: 0; flex: 1 1 auto; }
+      .countdown-dock { margin-left: 0.65rem; }
+      .countdown-time { font-size: 0.95rem; }
       .hero { align-items: center; }
       .action-row { align-items: flex-start; flex-direction: column; gap: 1.25rem; }
       footer { align-items: flex-start; flex-direction: column; gap: 0.4rem; }
@@ -759,7 +763,7 @@
     function updateCountdown() {
       const endsAt = state.countdown_ends_at ? new Date(state.countdown_ends_at) : null;
       const remaining = endsAt ? endsAt.getTime() - Date.now() : 0;
-      if (!state.maintenance_enabled || !endsAt || remaining <= 0) {
+      if (!endsAt || Number.isNaN(endsAt.getTime()) || remaining <= 0) {
         countdownDock.classList.remove('visible');
         return;
       }
