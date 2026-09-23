@@ -55,31 +55,325 @@
     body.maintenance-active::before {
       background:
         linear-gradient(115deg, transparent 0 44%, rgba(255, 139, 123, 0.08) 44.1% 44.3%, transparent 44.4%),
+        radial-gradient(circle at 80% 20%, rgba(255, 139, 123, 0.14), transparent 24rem),
         #0c0d0c;
     }
 
-    .maintenance-door {
-      position: fixed;
-      inset: 0 0 auto;
-      z-index: 5;
-      display: grid;
-      min-height: 5rem;
-      place-items: center;
-      padding: 1rem;
-      color: #0c0d0c;
-      background: var(--acid);
-      transform: translateY(-105%);
-      transition: transform 700ms cubic-bezier(.2,.8,.2,1);
+    body.maintenance-exiting::before {
+      background:
+        linear-gradient(115deg, transparent 0 44%, rgba(214, 243, 106, 0.06) 44.1% 44.3%, transparent 44.4%),
+        radial-gradient(circle at 80% 20%, rgba(214, 243, 106, 0.12), transparent 24rem),
+        #0c0d0c;
     }
 
-    .maintenance-door strong {
+    .maintenance-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 8;
+      display: grid;
+      place-items: center;
+      padding: clamp(1.5rem, 5vw, 4rem);
+      overflow: hidden;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(12, 13, 12, 0.82), rgba(12, 13, 12, 0.94)),
+        url('/wallpaper1.jpg') center / cover;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.04);
+      transition: opacity 500ms ease, transform 700ms cubic-bezier(.2,.8,.2,1), visibility 500ms;
+      visibility: hidden;
+    }
+
+    .maintenance-overlay::before,
+    .maintenance-overlay::after {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      content: '';
+    }
+
+    .maintenance-overlay::before {
+      background: linear-gradient(rgba(241, 240, 232, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(241, 240, 232, 0.07) 1px, transparent 1px);
+      background-size: 4rem 4rem;
+      mask-image: linear-gradient(to bottom, black, transparent 85%);
+      opacity: 0.45;
+    }
+
+    .maintenance-overlay::after {
+      background: repeating-linear-gradient(0deg, transparent 0 0.25rem, rgba(241, 240, 232, 0.035) 0.3rem 0.36rem);
+      mix-blend-mode: screen;
+    }
+
+    body.maintenance-active .maintenance-overlay {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+      visibility: visible;
+    }
+
+    body.maintenance-exiting .maintenance-overlay {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+      visibility: visible;
+    }
+
+    body.maintenance-active main,
+    body.maintenance-exiting main { pointer-events: none; }
+    body.maintenance-active header { z-index: 20; }
+    body.maintenance-active .admin-button { pointer-events: auto; }
+
+    .maintenance-scene {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .maintenance-sign {
+      position: absolute;
+      top: -12rem;
+      display: grid;
+      width: clamp(7rem, 16vw, 13rem);
+      aspect-ratio: 1 / 0.8;
+      place-items: center;
+      border: 0.45rem solid #191a13;
+      color: #191a13;
+      background: #f4d43f;
+      box-shadow: 0.6rem 0.8rem 0 rgba(0, 0, 0, 0.35);
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      transform-origin: 50% 0;
+      z-index: 2;
+    }
+
+    .maintenance-sign::after {
+      position: absolute;
+      bottom: -8rem;
+      width: 0.7rem;
+      height: 8rem;
+      content: '';
+      background: #303127;
+      box-shadow: 0 0 0 0.18rem rgba(0, 0, 0, 0.25);
+    }
+
+    .maintenance-sign-left { left: 8%; transform: rotate(-8deg); }
+    .maintenance-sign-right { right: 8%; transform: rotate(8deg); }
+
+    .caution-tape {
+      position: absolute;
+      z-index: 3;
+      display: flex;
+      width: 130%;
+      min-height: 2.6rem;
+      align-items: center;
+      gap: 2rem;
+      padding: 0.5rem 1rem;
+      overflow: hidden;
+      color: #16170f;
+      background: repeating-linear-gradient(135deg, #f4d43f 0 1.2rem, #191a13 1.2rem 2.4rem);
+      box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.35);
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(0.65rem, 1.4vw, 0.9rem);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+    }
+
+    .caution-tape span {
+      padding: 0.3rem 0.55rem;
+      background: #f4d43f;
+    }
+
+    .caution-tape-top { top: 13%; left: -8%; transform: rotate(-5deg); }
+    .caution-tape-bottom { bottom: 12%; left: -8%; transform: rotate(4deg); }
+
+    .block-wall {
+      position: absolute;
+      right: 0;
+      bottom: -1rem;
+      left: 0;
+      display: grid;
+      width: min(100%, 58rem);
+      margin: auto;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.35rem;
+      padding: 0 1rem;
+      align-items: end;
+      z-index: 1;
+    }
+
+    .concrete-block {
+      height: clamp(2.8rem, 7vw, 5.5rem);
+      border: 0.18rem solid #777b70;
+      background: linear-gradient(135deg, #b4b7a9, #73786c);
+      box-shadow: inset 0.5rem 0.35rem rgba(255, 255, 255, 0.12), 0.25rem 0.25rem 0 rgba(0, 0, 0, 0.35);
+      transform: translateY(120vh) rotate(8deg);
+    }
+
+    .concrete-block:nth-child(2n) { background: linear-gradient(135deg, #9da195, #62685e); }
+    .concrete-block:nth-child(2) { grid-column: 2; }
+    .concrete-block:nth-child(7) { grid-column: 1; }
+    .concrete-block:nth-child(8) { grid-column: 3; }
+    .concrete-block:nth-child(9) { grid-column: 5; }
+    .concrete-block:nth-child(10) { grid-column: 2; }
+
+    .maintenance-complete {
+      position: relative;
+      z-index: 5;
+      display: none;
+      max-width: 52rem;
+      color: var(--acid);
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(2rem, 8vw, 7rem);
+      font-weight: 500;
+      letter-spacing: -0.08em;
+      line-height: 0.9;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow: 0.12em 0.12em 0 rgba(255, 139, 123, 0.25);
+    }
+
+    .maintenance-exiting .maintenance-content { opacity: 0; }
+    .maintenance-exiting .maintenance-complete { display: block; animation: completion-pop 700ms cubic-bezier(.2,1.5,.4,1) both; }
+    .maintenance-exiting .maintenance-sign { animation: signs-fall 1.4s cubic-bezier(.55,.05,.68,.19) both; }
+    .maintenance-exiting .caution-tape { animation: tape-drop 1.1s cubic-bezier(.55,.05,.68,.19) both; }
+    .maintenance-exiting .concrete-block { animation: blocks-collapse 1.6s cubic-bezier(.55,.05,.68,.19) both; }
+    .maintenance-exiting .maintenance-sign-right { animation-delay: 120ms; }
+    .maintenance-exiting .caution-tape-bottom { animation-delay: 160ms; }
+
+    .maintenance-entering .maintenance-sign-left { animation: sign-drop 900ms 100ms cubic-bezier(.2,.8,.2,1) forwards; }
+    .maintenance-entering .maintenance-sign-right { animation: sign-drop 900ms 240ms cubic-bezier(.2,.8,.2,1) forwards; }
+    .maintenance-entering .caution-tape-top { animation: tape-slide 900ms 550ms cubic-bezier(.2,.8,.2,1) both; }
+    .maintenance-entering .caution-tape-bottom { animation: tape-slide 900ms 720ms cubic-bezier(.2,.8,.2,1) both; }
+    .maintenance-entering .concrete-block { animation: block-build 850ms cubic-bezier(.2,.8,.2,1) forwards; }
+    .maintenance-entering .concrete-block:nth-child(2n) { animation-delay: 120ms; }
+    .maintenance-entering .concrete-block:nth-child(3n) { animation-delay: 240ms; }
+    .maintenance-entering .concrete-block:nth-child(4n) { animation-delay: 360ms; }
+
+    @keyframes sign-drop {
+      0% { top: -12rem; transform: rotate(0); }
+      68% { top: 8%; transform: rotate(8deg); }
+      82% { top: 5%; transform: rotate(-4deg); }
+      100% { top: 7%; transform: rotate(-2deg); }
+    }
+
+    @keyframes tape-slide {
+      from { opacity: 0; transform: translateX(-110%) rotate(-5deg); }
+      to { opacity: 1; transform: translateX(0) rotate(-5deg); }
+    }
+
+    @keyframes block-build {
+      from { transform: translateY(120vh) rotate(8deg); }
+      78% { transform: translateY(-0.65rem) rotate(-1deg); }
+      to { transform: translateY(0) rotate(0); }
+    }
+
+    @keyframes signs-fall {
+      to { top: 115%; transform: rotate(35deg); }
+    }
+
+    @keyframes tape-drop {
+      to { opacity: 0; transform: translateY(115vh) rotate(18deg); }
+    }
+
+    @keyframes blocks-collapse {
+      to { transform: translateY(120vh) rotate(18deg); opacity: 0; }
+    }
+
+    @keyframes completion-pop {
+      from { opacity: 0; transform: scale(0.65) rotate(-4deg); }
+      to { opacity: 1; transform: scale(1) rotate(0); }
+    }
+
+    .announcement-banner {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      z-index: 25;
+      display: none;
+      width: min(100% - 2rem, 58rem);
+      padding: 0.7rem 1rem;
+      border-right: 1px solid var(--acid);
+      border-bottom: 1px solid var(--acid);
+      border-left: 1px solid var(--acid);
+      color: var(--ink);
+      background: rgba(12, 13, 12, 0.94);
+      box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-align: center;
+      transform: translate(-50%, -110%);
+      transition: transform 400ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .announcement-banner.visible { display: block; transform: translate(-50%, 0); }
+    .announcement-banner strong { color: var(--acid); }
+
+    .countdown-dock {
+      display: none;
+      flex-direction: column;
+      align-items: baseline;
+      gap: 0.15rem;
+      margin-left: 1rem;
+      color: var(--muted);
+    }
+
+    .countdown-dock.visible { display: inline-flex; animation: countdown-arrive 500ms cubic-bezier(.2,.8,.2,1) both; }
+    .countdown-name { color: var(--acid); }
+    .countdown-time { color: var(--ink); font-size: clamp(1rem, 2vw, 1.45rem); letter-spacing: 0.05em; }
+
+    @keyframes countdown-arrive {
+      from { opacity: 0; transform: translateX(-0.8rem); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    }
+
+    .maintenance-content {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 58rem);
+      text-align: center;
+    }
+
+    .maintenance-kicker {
+      margin: 0 0 1.5rem;
+      color: var(--acid);
       font-family: 'DM Mono', monospace;
       font-size: 0.75rem;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
     }
 
-    body.maintenance-active .maintenance-door { transform: translateY(0); }
+    .maintenance-content h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: clamp(3.5rem, 13vw, 10rem);
+      font-weight: 600;
+      letter-spacing: -0.08em;
+      line-height: 0.82;
+      text-transform: uppercase;
+      text-shadow: 0.08em 0.08em 0 rgba(255, 139, 123, 0.22);
+    }
+
+    .maintenance-rule {
+      width: min(100%, 34rem);
+      height: 1px;
+      margin: clamp(2rem, 5vw, 3.5rem) auto 1.5rem;
+      background: linear-gradient(90deg, transparent, var(--danger), transparent);
+    }
+
+    .maintenance-copy {
+      max-width: 28rem;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      line-height: 1.5;
+    }
 
     main {
       display: grid;
@@ -104,6 +398,8 @@
       position: relative;
       z-index: 6;
     }
+
+    .header-brand { display: flex; align-items: center; }
 
     .admin-button {
       border: 1px solid var(--line);
@@ -234,6 +530,12 @@
       transform: translate(-0.2rem, -0.2rem);
     }
 
+    .launch-button:disabled {
+      cursor: not-allowed;
+      filter: grayscale(1);
+      opacity: 0.5;
+    }
+
     .launch-button:focus-visible {
       outline: 2px solid var(--ink);
       outline-offset: 5px;
@@ -273,7 +575,7 @@
       position: fixed;
       top: 50%;
       left: 50%;
-      z-index: 10;
+      z-index: 30;
       display: none;
       margin: 0;
       border: 1px solid var(--acid);
@@ -315,7 +617,13 @@
 <body>
   <main>
     <header>
-      <div class="mark">redirecter</div>
+      <div class="header-brand">
+        <div class="mark">redirecter</div>
+        <div class="countdown-dock" id="countdown-dock" aria-live="polite">
+          <span class="countdown-name" id="countdown-name-display"></span>
+          <span class="countdown-time" id="countdown-time-display"></span>
+        </div>
+      </div>
       <div>
         <span>signal / 001</span>
         <button class="admin-button" id="admin-open" type="button" aria-label="Open admin menu">•••</button>
@@ -332,11 +640,11 @@
           <p class="action-copy">One door. One destination. Step through when you are ready.</p>
           <div class="game-list">
             <h2>backrooms games</h2>
-            <button class="launch-button" type="button" onclick="window.open('https://backrooms-game-oz0r.onrender.com/', '_blank', 'noopener,noreferrer')">
+            <button class="launch-button" type="button" onclick="openRedirect('https://backrooms-game-oz0r.onrender.com/', this)">
               level 0
               <span aria-hidden="true">↗</span>
             </button>
-            <button class="launch-button poolrooms-button" type="button" onclick="window.open('https://backrooms-game-2.onrender.com/', '_blank', 'noopener,noreferrer')">
+            <button class="launch-button poolrooms-button" type="button" onclick="openRedirect('https://backrooms-game-2.onrender.com/', this)">
               poolrooms
               <span aria-hidden="true">↗</span>
             </button>
@@ -350,7 +658,28 @@
       <div class="status">● ready to redirect</div>
     </footer>
   </main>
-  <div class="maintenance-door" aria-hidden="true"><strong>maintenance mode active</strong></div>
+  <div class="announcement-banner" id="announcement-banner" role="status" aria-live="polite"></div>
+  <div class="maintenance-overlay" id="maintenance-overlay" aria-hidden="true">
+    <div class="maintenance-scene" aria-hidden="true">
+      <div class="maintenance-sign maintenance-sign-left">✋</div>
+      <div class="maintenance-sign maintenance-sign-right">✋</div>
+      <div class="caution-tape caution-tape-top"><span>CONSTRUCTION IS HAPPENING</span><span>CONSTRUCTION IS HAPPENING</span><span>CONSTRUCTION IS HAPPENING</span></div>
+      <div class="caution-tape caution-tape-bottom"><span>CONSTRUCTION IS HAPPENING</span><span>CONSTRUCTION IS HAPPENING</span><span>CONSTRUCTION IS HAPPENING</span></div>
+      <div class="block-wall">
+        <div class="concrete-block"></div><div class="concrete-block"></div><div class="concrete-block"></div>
+        <div class="concrete-block"></div><div class="concrete-block"></div><div class="concrete-block"></div>
+        <div class="concrete-block"></div><div class="concrete-block"></div><div class="concrete-block"></div>
+        <div class="concrete-block"></div><div class="concrete-block"></div><div class="concrete-block"></div>
+      </div>
+    </div>
+    <div class="maintenance-content">
+      <p class="maintenance-kicker">signal interrupted / access paused</p>
+      <h2>maintenance</h2>
+      <div class="maintenance-rule"></div>
+      <p class="maintenance-copy">The redirecter is being tuned. Destinations will return when the system is ready.</p>
+    </div>
+    <div class="maintenance-complete">maintenance<br>completed</div>
+  </div>
 
   <dialog class="admin-dialog" id="admin-dialog">
     <form id="passcode-form">
@@ -379,6 +708,12 @@
     const dialog = document.getElementById('admin-dialog');
     const message = document.getElementById('admin-message');
     const controlsMessage = document.getElementById('controls-message');
+    const maintenanceOverlay = document.getElementById('maintenance-overlay');
+    const announcementBanner = document.getElementById('announcement-banner');
+    const countdownDock = document.getElementById('countdown-dock');
+    const countdownNameDisplay = document.getElementById('countdown-name-display');
+    const countdownTimeDisplay = document.getElementById('countdown-time-display');
+    let maintenanceExitTimer;
 
     function openAdminDialog() {
       if (typeof dialog.showModal === 'function') {
@@ -390,17 +725,62 @@
     }
 
     function renderState(nextState) {
+      const wasMaintenanceEnabled = state.maintenance_enabled;
       Object.assign(state, nextState);
-      document.body.classList.toggle('maintenance-active', state.maintenance_enabled);
-      const strip = document.getElementById('live-strip');
-      const items = [];
-      if (state.countdown_ends_at && new Date(state.countdown_ends_at) > new Date()) {
-        items.push((state.countdown_name || 'event') + ' ends ' + new Date(state.countdown_ends_at).toLocaleString());
-      }
-      if (state.announcement) items.push(state.announcement);
-      strip.textContent = items.join('  •  ');
-      strip.classList.toggle('visible', items.length > 0);
+      if (!wasMaintenanceEnabled && state.maintenance_enabled) startMaintenance();
+      if (wasMaintenanceEnabled && !state.maintenance_enabled) finishMaintenance();
+      if (!state.maintenance_enabled && !wasMaintenanceEnabled) document.body.classList.remove('maintenance-active', 'maintenance-exiting');
+      maintenanceOverlay.setAttribute('aria-hidden', String(!state.maintenance_enabled && !document.body.classList.contains('maintenance-exiting')));
+      document.querySelectorAll('.launch-button').forEach((button) => {
+        button.disabled = state.maintenance_enabled;
+        button.setAttribute('aria-disabled', String(state.maintenance_enabled));
+      });
+      announcementBanner.textContent = state.announcement ? 'ANNOUNCEMENT / ' + state.announcement : '';
+      announcementBanner.classList.toggle('visible', Boolean(state.announcement));
+      updateCountdown();
     }
+
+    function startMaintenance() {
+      window.clearTimeout(maintenanceExitTimer);
+      document.body.classList.remove('maintenance-exiting');
+      document.body.classList.add('maintenance-active', 'maintenance-entering');
+      window.setTimeout(() => document.body.classList.remove('maintenance-entering'), 2600);
+    }
+
+    function finishMaintenance() {
+      document.body.classList.remove('maintenance-active', 'maintenance-entering');
+      document.body.classList.add('maintenance-exiting');
+      maintenanceExitTimer = window.setTimeout(() => {
+        document.body.classList.remove('maintenance-exiting');
+        maintenanceOverlay.setAttribute('aria-hidden', 'true');
+      }, 5000);
+    }
+
+    function updateCountdown() {
+      const endsAt = state.countdown_ends_at ? new Date(state.countdown_ends_at) : null;
+      const remaining = endsAt ? endsAt.getTime() - Date.now() : 0;
+      if (!state.maintenance_enabled || !endsAt || remaining <= 0) {
+        countdownDock.classList.remove('visible');
+        return;
+      }
+      const totalSeconds = Math.floor(remaining / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      countdownNameDisplay.textContent = state.countdown_name || 'event';
+      countdownTimeDisplay.textContent = `${days ? days + 'd ' : ''}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      countdownDock.classList.add('visible');
+    }
+
+    function openRedirect(url, button) {
+      if (state.maintenance_enabled) return;
+      button.disabled = true;
+      window.open(url, '_blank', 'noopener,noreferrer');
+      window.setTimeout(() => { button.disabled = state.maintenance_enabled; }, 250);
+    }
+
+    window.setInterval(updateCountdown, 1000);
 
     async function loadState() {
       if (!supabaseClient) return;
