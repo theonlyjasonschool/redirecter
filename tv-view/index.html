@@ -294,6 +294,8 @@
     const timer = document.getElementById('timer');
     const eventEmpty = document.getElementById('event-empty');
     const maintenanceValue = document.getElementById('maintenance-value');
+    let realtimeConnected = false;
+    let stateAvailable = false;
 
     function renderState(nextState) {
       Object.assign(state, nextState);
@@ -341,24 +343,35 @@
         setConnection(false, 'Unavailable');
         return;
       }
-      const { data, error } = await supabaseClient.from('site_state').select('*').eq('id', true).single();
-      if (error || !data) {
-        setConnection(false, 'Connection issue');
-        return;
+      try {
+        const { data, error } = await supabaseClient.from('site_state').select('*').eq('id', true).single();
+        if (error || !data) {
+          if (!realtimeConnected) setConnection(false, 'Connection issue');
+          return;
+        }
+        stateAvailable = true;
+        renderState(data);
+        if (!realtimeConnected) setConnection(true, 'Polling');
+      } catch {
+        if (!realtimeConnected) setConnection(false, 'Connection issue');
       }
-      renderState(data);
-      setConnection(true, 'Live');
     }
 
     window.setInterval(updateCountdown, 1000);
+    window.setInterval(loadState, 10000);
     if (supabaseClient) {
       supabaseClient.channel('tv-view-site-state')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'site_state' }, (payload) => {
           if (payload.new) renderState(payload.new);
         })
         .subscribe((status) => {
-          if (status === 'SUBSCRIBED') setConnection(true, 'Live');
-          else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') setConnection(false, 'Reconnecting');
+          if (status === 'SUBSCRIBED') {
+            realtimeConnected = true;
+            setConnection(true, 'Live');
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            realtimeConnected = false;
+            setConnection(stateAvailable, stateAvailable ? 'Polling' : 'Reconnecting');
+          }
         });
     }
     loadState();
