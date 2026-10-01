@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10120f">
+  <title>Live board</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+    :root {
+      color-scheme: dark;
+      --background: #10120f;
+      --foreground: #f1f0e8;
+      --muted: #a4a79c;
+      --line: rgba(241, 240, 232, 0.16);
+      --acid: #d6f36a;
+      --orange: #ff9a67;
+      --panel: rgba(26, 29, 24, 0.78);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--foreground);
+      background:
+        linear-gradient(115deg, transparent 0 58%, rgba(214, 243, 106, 0.07) 58.1% 58.25%, transparent 58.35%),
+        radial-gradient(ellipse at 75% 12%, rgba(214, 243, 106, 0.12), transparent 38rem),
+        radial-gradient(ellipse at 5% 90%, rgba(255, 154, 103, 0.08), transparent 30rem),
+        var(--background);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .board {
+      display: grid;
+      min-height: 100vh;
+      grid-template-rows: auto 1fr auto;
+      padding: clamp(1.5rem, 4vw, 4rem) clamp(1.5rem, 5vw, 5rem) clamp(1.25rem, 3vw, 2.5rem);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand, .live-status, .eyebrow, .maintenance-status, .countdown-label {
+      font-family: 'DM Mono', monospace;
+      text-transform: uppercase;
+    }
+
+    .brand {
+      color: var(--muted);
+      font-size: clamp(0.75rem, 1.15vw, 1rem);
+      letter-spacing: 0.14em;
+    }
+
+    .live-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      color: var(--muted);
+      font-size: clamp(0.7rem, 1vw, 0.9rem);
+    }
+
+    .live-dot {
+      width: 0.65rem;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 1rem rgba(255, 154, 103, 0.5);
+    }
+
+    .live-status[data-connected="true"] .live-dot {
+      background: var(--acid);
+      box-shadow: 0 0 1rem rgba(214, 243, 106, 0.55);
+    }
+
+    main {
+      display: grid;
+      width: min(100%, 110rem);
+      margin: auto;
+      grid-template-columns: minmax(0, 1.1fr) minmax(22rem, 0.9fr);
+      align-items: center;
+      gap: clamp(2.5rem, 7vw, 8rem);
+      padding: clamp(3rem, 8vh, 7rem) 0;
+    }
+
+    .announcement { min-width: 0; }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      margin: 0 0 1.5rem;
+      color: var(--acid);
+      font-size: clamp(0.8rem, 1.2vw, 1.05rem);
+      letter-spacing: 0.14em;
+    }
+
+    .eyebrow::before {
+      width: 2.5rem;
+      height: 2px;
+      content: '';
+      background: currentColor;
+    }
+
+    h1 {
+      max-width: 18ch;
+      margin: 0;
+      font-size: clamp(2.5rem, 6.2vw, 7rem);
+      font-weight: 500;
+      line-height: 1.04;
+      overflow-wrap: anywhere;
+    }
+
+    .announcement.empty h1 {
+      color: var(--muted);
+      font-size: clamp(2rem, 4vw, 4.5rem);
+    }
+
+    .event-panel {
+      position: relative;
+      min-width: 0;
+      padding: clamp(1.5rem, 3vw, 3rem);
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: 0 2rem 6rem rgba(0, 0, 0, 0.24);
+      animation: arrive 700ms cubic-bezier(.2, .8, .2, 1) both;
+    }
+
+    .event-panel::before {
+      position: absolute;
+      top: -1px;
+      left: clamp(1.5rem, 3vw, 3rem);
+      width: 4.5rem;
+      height: 3px;
+      content: '';
+      background: var(--orange);
+    }
+
+    .countdown-label {
+      margin: 0 0 0.8rem;
+      color: var(--muted);
+      font-size: clamp(0.75rem, 1vw, 0.95rem);
+      letter-spacing: 0.12em;
+    }
+
+    .event-name {
+      min-height: 1.2em;
+      margin: 0 0 clamp(1.5rem, 3vw, 3rem);
+      color: var(--orange);
+      font-size: clamp(1.5rem, 2.8vw, 3rem);
+      font-weight: 500;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+
+    .timer {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(0.5rem, 1.4vw, 1.4rem);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timer[hidden], .event-empty[hidden] { display: none; }
+
+    .time-unit { min-width: 0; }
+
+    .time-value {
+      display: block;
+      color: var(--foreground);
+      font-size: clamp(2rem, 5vw, 5.6rem);
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .time-caption {
+      display: block;
+      margin-top: 0.7rem;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(0.6rem, 0.9vw, 0.8rem);
+      text-transform: uppercase;
+    }
+
+    .event-empty {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1.1rem, 1.8vw, 1.6rem);
+      line-height: 1.5;
+    }
+
+    footer {
+      display: flex;
+      min-height: 2.5rem;
+      align-items: end;
+      justify-content: flex-end;
+    }
+
+    .maintenance-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      color: var(--muted);
+      font-size: clamp(0.65rem, 0.95vw, 0.85rem);
+      text-align: right;
+    }
+
+    .maintenance-value { color: var(--acid); }
+    .maintenance-value[data-active="true"] { color: var(--orange); }
+
+    @keyframes arrive {
+      from { opacity: 0; transform: translateY(1rem); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 760px) {
+      .board { min-height: 100svh; }
+      main {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+        padding: 3rem 0;
+      }
+      h1 { max-width: 22ch; }
+      .event-panel { width: 100%; }
+    }
+
+    @media (max-width: 420px) {
+      .board { padding-right: 1.1rem; padding-left: 1.1rem; }
+      .timer { gap: 0.35rem; }
+      .time-value { font-size: clamp(1.8rem, 11vw, 2.6rem); }
+      .maintenance-status { gap: 0.4rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="board">
+    <header>
+      <span class="brand">Live board</span>
+      <div class="live-status" id="live-status" role="status" aria-live="polite">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span id="connection-label">Connecting</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="announcement empty" id="announcement-section" aria-live="polite">
+        <p class="eyebrow">Announcement</p>
+        <h1 id="announcement-text">No current announcement</h1>
+      </section>
+
+      <section class="event-panel" aria-label="Upcoming event countdown">
+        <p class="countdown-label">Up next</p>
+        <h2 class="event-name" id="event-name">No event scheduled</h2>
+        <div class="timer" id="timer" hidden aria-live="off">
+          <div class="time-unit"><span class="time-value" id="days">00</span><span class="time-caption">Days</span></div>
+          <div class="time-unit"><span class="time-value" id="hours">00</span><span class="time-caption">Hours</span></div>
+          <div class="time-unit"><span class="time-value" id="minutes">00</span><span class="time-caption">Minutes</span></div>
+          <div class="time-unit"><span class="time-value" id="seconds">00</span><span class="time-caption">Seconds</span></div>
+        </div>
+        <p class="event-empty" id="event-empty">A countdown will appear when an event is scheduled.</p>
+      </section>
+    </main>
+
+    <footer>
+      <div class="maintenance-status" aria-live="polite">
+        <span>Maintenance on original website :(</span>
+        <strong class="maintenance-value" id="maintenance-value" data-active="false">OFF</strong>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://xbxlwqbkamtcskdfspnf.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_RvD8zROSZ9nf35-YZKWBcQ_0gLXBvc';
+    const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const state = { maintenance_enabled: false, countdown_name: null, countdown_ends_at: null, announcement: null };
+    const announcementSection = document.getElementById('announcement-section');
+    const announcementText = document.getElementById('announcement-text');
+    const eventName = document.getElementById('event-name');
+    const timer = document.getElementById('timer');
+    const eventEmpty = document.getElementById('event-empty');
+    const maintenanceValue = document.getElementById('maintenance-value');
+
+    function renderState(nextState) {
+      Object.assign(state, nextState);
+      const hasAnnouncement = Boolean(state.announcement?.trim());
+      announcementText.textContent = hasAnnouncement ? state.announcement : 'No current announcement';
+      announcementSection.classList.toggle('empty', !hasAnnouncement);
+      maintenanceValue.textContent = state.maintenance_enabled ? 'ON' : 'OFF';
+      maintenanceValue.dataset.active = String(Boolean(state.maintenance_enabled));
+      updateCountdown();
+    }
+
+    function updateCountdown() {
+      const endsAt = state.countdown_ends_at ? new Date(state.countdown_ends_at) : null;
+      const remaining = endsAt ? endsAt.getTime() - Date.now() : 0;
+      const hasCountdown = endsAt && !Number.isNaN(endsAt.getTime());
+      eventName.textContent = state.countdown_name || (hasCountdown ? 'Upcoming event' : 'No event scheduled');
+      timer.hidden = !hasCountdown;
+      eventEmpty.hidden = Boolean(hasCountdown);
+
+      if (!hasCountdown) return;
+      if (remaining <= 0) {
+        document.getElementById('days').textContent = '00';
+        document.getElementById('hours').textContent = '00';
+        document.getElementById('minutes').textContent = '00';
+        document.getElementById('seconds').textContent = '00';
+        eventName.textContent = (state.countdown_name || 'Event') + ' is starting';
+        return;
+      }
+
+      const totalSeconds = Math.floor(remaining / 1000);
+      document.getElementById('days').textContent = String(Math.floor(totalSeconds / 86400)).padStart(2, '0');
+      document.getElementById('hours').textContent = String(Math.floor((totalSeconds % 86400) / 3600)).padStart(2, '0');
+      document.getElementById('minutes').textContent = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+      document.getElementById('seconds').textContent = String(totalSeconds % 60).padStart(2, '0');
+    }
+
+    function setConnection(connected, label) {
+      const status = document.getElementById('live-status');
+      status.dataset.connected = String(connected);
+      document.getElementById('connection-label').textContent = label;
+    }
+
+    async function loadState() {
+      if (!supabaseClient) {
+        setConnection(false, 'Unavailable');
+        return;
+      }
+      const { data, error } = await supabaseClient.from('site_state').select('*').eq('id', true).single();
+      if (error || !data) {
+        setConnection(false, 'Connection issue');
+        return;
+      }
+      renderState(data);
+      setConnection(true, 'Live');
+    }
+
+    window.setInterval(updateCountdown, 1000);
+    if (supabaseClient) {
+      supabaseClient.channel('tv-view-site-state')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'site_state' }, (payload) => {
+          if (payload.new) renderState(payload.new);
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') setConnection(true, 'Live');
+          else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') setConnection(false, 'Reconnecting');
+        });
+    }
+    loadState();
+  </script>
+</body>
+</html>
