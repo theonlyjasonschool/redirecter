@@ -29,6 +29,16 @@
       font-family: 'Space Grotesk', sans-serif;
     }
 
+    .site-wallpaper {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
     body::before {
       position: fixed;
       inset: 0;
@@ -38,7 +48,7 @@
         linear-gradient(115deg, transparent 0 44%, rgba(214, 243, 106, 0.06) 44.1% 44.3%, transparent 44.4%),
         linear-gradient(295deg, transparent 0 65%, rgba(241, 240, 232, 0.045) 65.1% 65.2%, transparent 65.3%),
         radial-gradient(circle at 75% 18%, rgba(214, 243, 106, 0.12), transparent 25rem),
-        #0c0d0c;
+        rgba(12, 13, 12, 0.54);
     }
 
     body::after {
@@ -56,14 +66,14 @@
       background:
         linear-gradient(115deg, transparent 0 44%, rgba(255, 139, 123, 0.08) 44.1% 44.3%, transparent 44.4%),
         radial-gradient(circle at 80% 20%, rgba(255, 139, 123, 0.14), transparent 24rem),
-        #0c0d0c;
+        rgba(12, 13, 12, 0.54);
     }
 
     body.maintenance-exiting::before {
       background:
         linear-gradient(115deg, transparent 0 44%, rgba(214, 243, 106, 0.06) 44.1% 44.3%, transparent 44.4%),
         radial-gradient(circle at 80% 20%, rgba(214, 243, 106, 0.12), transparent 24rem),
-        #0c0d0c;
+        rgba(12, 13, 12, 0.54);
     }
 
     .maintenance-overlay {
@@ -75,9 +85,7 @@
       padding: clamp(1.5rem, 5vw, 4rem);
       overflow: hidden;
       color: var(--ink);
-      background:
-        linear-gradient(rgba(12, 13, 12, 0.82), rgba(12, 13, 12, 0.94)),
-        url('/wallpaper1.jpg') center / cover;
+      background: linear-gradient(rgba(12, 13, 12, 0.42), rgba(12, 13, 12, 0.72));
       opacity: 0;
       pointer-events: none;
       transform: scale(1.04);
@@ -525,9 +533,7 @@
       border: 1px solid var(--acid);
       border-radius: 0;
       color: var(--ink);
-      background-image: linear-gradient(rgba(12, 13, 12, 0.42), rgba(12, 13, 12, 0.42)), url('/wallpaper1.jpg');
-      background-position: center;
-      background-size: cover;
+      background: rgba(12, 13, 12, 0.72);
       cursor: pointer;
       font: 600 0.9rem 'Space Grotesk', sans-serif;
       transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
@@ -648,6 +654,9 @@
   </style>
 </head>
 <body>
+  <video class="site-wallpaper" autoplay muted loop playsinline aria-hidden="true" tabindex="-1">
+    <source src="/hallowbg.mp4" type="video/mp4">
+  </video>
   <main>
     <header>
       <div class="header-brand">
