@@ -21,6 +21,8 @@ Deno.serve(async (request) => {
   const updates: Record<string, boolean | string | null> = {};
   if (body.action === 'maintenance') {
     updates.maintenance_enabled = Boolean(body.enabled);
+  } else if (body.action === 'halloween') {
+    updates.halloween_active = Boolean(body.enabled);
   } else if (body.action === 'countdown') {
     updates.countdown_name = String(body.name || '').trim() || null;
     updates.countdown_ends_at = body.endsAt || null;

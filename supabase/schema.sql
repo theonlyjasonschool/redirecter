@@ -1,11 +1,15 @@
 create table if not exists public.site_state (
   id boolean primary key default true check (id = true),
   maintenance_enabled boolean not null default false,
+  halloween_active boolean not null default false,
   countdown_name text,
   countdown_ends_at timestamptz,
   announcement text,
   updated_at timestamptz not null default now()
 );
+
+alter table public.site_state
+  add column if not exists halloween_active boolean not null default false;
 
 insert into public.site_state (id)
 values (true)

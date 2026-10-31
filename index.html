@@ -124,6 +124,25 @@
     body.maintenance-active header { z-index: 20; }
     body.maintenance-active .admin-button { pointer-events: auto; }
 
+    .halloween-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 8;
+      visibility: hidden;
+      background: #000;
+    }
+
+    body.halloween-active .halloween-overlay { visibility: visible; }
+    body.halloween-active header { z-index: 20; }
+    body.halloween-active .admin-button { pointer-events: auto; }
+
+    .halloween-overlay iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
     .maintenance-scene {
       position: absolute;
       inset: 0;
@@ -698,6 +717,9 @@
     </div>
     <div class="maintenance-complete">maintenance<br>completed</div>
   </div>
+  <div class="halloween-overlay" id="halloween-overlay" aria-hidden="true">
+    <iframe id="halloween-scene" title="Halloween event"></iframe>
+  </div>
 
   <dialog class="admin-dialog" id="admin-dialog">
     <form id="passcode-form">
@@ -709,6 +731,7 @@
     <form id="controls-form" hidden>
       <h2>site controls</h2>
       <div class="admin-actions"><button id="maintenance-toggle" type="button">toggle maintenance</button></div>
+      <div class="admin-actions"><button id="halloween-toggle" type="button">activate event halloween</button></div>
       <label>Event name <input id="countdown-name" type="text" maxlength="80"></label>
       <label>Event ends <input id="countdown-date" type="datetime-local"></label>
       <div class="admin-actions"><button id="countdown-save" type="button">save countdown</button><button id="countdown-clear" class="secondary" type="button">clear countdown</button></div>
@@ -722,11 +745,13 @@
     const SUPABASE_URL = 'https://xbxlwqbkamtcskdfspnf.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_RvD8zROSZ9nf35-YZKWBcQ_0gLXBvcC';
     const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-    const state = { maintenance_enabled: false, countdown_name: null, countdown_ends_at: null, announcement: null };
+    const state = { maintenance_enabled: false, halloween_active: false, countdown_name: null, countdown_ends_at: null, announcement: null };
     const dialog = document.getElementById('admin-dialog');
     const message = document.getElementById('admin-message');
     const controlsMessage = document.getElementById('controls-message');
     const maintenanceOverlay = document.getElementById('maintenance-overlay');
+    const halloweenOverlay = document.getElementById('halloween-overlay');
+    const halloweenScene = document.getElementById('halloween-scene');
     const announcementBanner = document.getElementById('announcement-banner');
     const countdownDock = document.getElementById('countdown-dock');
     const countdownNameDisplay = document.getElementById('countdown-name-display');
@@ -744,14 +769,21 @@
 
     function renderState(nextState) {
       const wasMaintenanceEnabled = state.maintenance_enabled;
+      const wasHalloweenActive = state.halloween_active;
       Object.assign(state, nextState);
       if (!wasMaintenanceEnabled && state.maintenance_enabled) startMaintenance();
       if (wasMaintenanceEnabled && !state.maintenance_enabled) finishMaintenance();
       if (!state.maintenance_enabled && !wasMaintenanceEnabled) document.body.classList.remove('maintenance-active', 'maintenance-exiting');
       maintenanceOverlay.setAttribute('aria-hidden', String(!state.maintenance_enabled && !document.body.classList.contains('maintenance-exiting')));
+      if (Boolean(state.halloween_active) !== Boolean(wasHalloweenActive)) {
+        document.body.classList.toggle('halloween-active', Boolean(state.halloween_active));
+        halloweenOverlay.setAttribute('aria-hidden', String(!state.halloween_active));
+        halloweenScene.src = state.halloween_active ? '/halloween.html?start=' + Date.now() : 'about:blank';
+      }
+      document.getElementById('halloween-toggle').textContent = state.halloween_active ? 'end halloween event' : 'activate event halloween';
       document.querySelectorAll('.launch-button').forEach((button) => {
-        button.disabled = state.maintenance_enabled;
-        button.setAttribute('aria-disabled', String(state.maintenance_enabled));
+        button.disabled = state.maintenance_enabled || state.halloween_active;
+        button.setAttribute('aria-disabled', String(state.maintenance_enabled || state.halloween_active));
       });
       announcementBanner.textContent = state.announcement ? 'ANNOUNCEMENT / ' + state.announcement : '';
       announcementBanner.classList.toggle('visible', Boolean(state.announcement));
@@ -836,6 +868,9 @@
     });
     document.getElementById('maintenance-toggle').addEventListener('click', async () => {
       try { await adminAction({ action: 'maintenance', enabled: !state.maintenance_enabled }); document.getElementById('maintenance-toggle').textContent = state.maintenance_enabled ? 'disable maintenance' : 'enable maintenance'; } catch (error) { controlsMessage.textContent = error.message; }
+    });
+    document.getElementById('halloween-toggle').addEventListener('click', async () => {
+      try { await adminAction({ action: 'halloween', enabled: !state.halloween_active }); } catch (error) { controlsMessage.textContent = error.message; }
     });
     document.getElementById('countdown-save').addEventListener('click', async () => {
       try { await adminAction({ action: 'countdown', name: document.getElementById('countdown-name').value, endsAt: new Date(document.getElementById('countdown-date').value).toISOString() }); controlsMessage.textContent = 'Countdown saved.'; } catch (error) { controlsMessage.textContent = error.message; }

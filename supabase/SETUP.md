@@ -20,4 +20,6 @@ supabase functions deploy admin-control --no-verify-jwt
 
 The browser uses only the publishable key in `index.html`. Never put the secret key in this repository or in GitHub Pages.
 
-After the schema and function are deployed, the three-dot admin button can update maintenance mode, the countdown, and announcements. Visitors receive changes through Supabase Realtime.
+After the schema and function are deployed, the three-dot admin button can update maintenance mode, the countdown, announcements, and the Halloween event. Visitors receive changes through Supabase Realtime.
+
+Place `hallowbg.mp4` in the site root. The Halloween animation plays once after activation, then the video loops until an admin ends the event.
